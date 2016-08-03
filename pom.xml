@@ -18,11 +18,6 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-validator</artifactId>
-				<version>${hibernate.validator.version}</version>
-			</dependency>
-			<dependency>
 				<!-- Import dependency management from Spring Boot -->
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
@@ -44,12 +39,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jfairy</groupId>
-			<artifactId>jfairy</artifactId>
-			<version>0.3.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -113,4 +102,7 @@
 		</plugins>
 	</build>
 
+	<modules>
+		<module>uaa</module>
+	</modules>
 </project>

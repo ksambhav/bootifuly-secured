@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: uaa
+server:
+  port: 8080
+logging:
+  level:
+    org.springframework: warn
+    org.springframework.web: debug
+security:
+  user:
+    name: admin
+    password: password
+  oauth2:
+    client:
+      client-id: acme
+      client-secret: acmesecret
+      scope: read,write
+      auto-approve-scopes: .*
+facebook:
+  client:
+    access-token-uri: https://graph.facebook.com/oauth/access_token
+    user-authorization-uri: https://www.facebook.com/dialog/oauth
+    authentication-scheme: query
+    client-id: 233668646673605
+    client-secret: 33b17e044ee6a4fa383f46ec6e28ea1d
+    token-name: oauth_token
+    client-authentication-scheme: form
+  resource:
+    user-info-uri: https://graph.facebook.com/me
+github:
+  client:
+    client-id: bd1c0a783ccdd1c9b9e4
+    client-secret: 1a9030fbca47a5b2c28e92f19050bb77824b5ad1
+    access-token-uri: https://github.com/login/oauth/access_token
+    user-authorization-uri: https://github.com/login/oauth/authorize
+    client-authentication-scheme: form
+  resource:
+    user-info-uri: https://api.github.com/user
+google:
+  client:
+    client-id: 152974219409-uotglq83dmvks07jpfmrvnb0dahek614.apps.googleusercontent.com
+    client-secret: Yx-e-ROwAs2G639NdyI8wXh-
+    access-token-uri: https://www.googleapis.com/oauth2/v4/token
+    token-name: access_token
+    user-authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+    client-authentication-scheme: form
+    scope: https://www.googleapis.com/auth/userinfo.profile
+  resource:
+    user-info-uri: https://www.googleapis.com/oauth2/v1/userinfo?alt=json
