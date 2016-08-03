@@ -10,3 +10,19 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+node_modules
+bower_components
+target
+dist
+.settings
+.project
+.classpath
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+.idea
+node/
+.npm
+*.factorypath
+npm-debug.log
+.vscode
+test-output
