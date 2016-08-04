@@ -2,7 +2,7 @@ spring:
   application:
     name: sso
 server:
-  port: 8080
+  port: 9999
 logging:
   level:
     org.springframework: warn
@@ -13,8 +13,8 @@ security:
     client:
       client-id: acme
       client-secret: acmesecret
-      user-authorization-uri: http://localhost:9999/oauth/authorize
-      access-token-uri: http://localhost:9999/oauth/token
+      user-authorization-uri: http://localhost:8080/oauth/authorize
+      access-token-uri: http://localhost:8080/oauth/token
       access-token-validity-seconds: 36000
       scope:
       - read
@@ -22,4 +22,4 @@ security:
       - profile
       - openid
     resource:
-      user-info-uri: http://localhost:9999/me
+      user-info-uri: http://localhost:8080/me
