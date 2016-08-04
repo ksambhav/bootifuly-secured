@@ -4,46 +4,31 @@
 package com.samsoft.uaa;
 
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-
-import javax.servlet.Filter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.oauth2.client.OAuth2ClientContext;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
-import org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilter;
-import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.filter.CompositeFilter;
 
 /**
  * @author sambhav.jain
@@ -65,86 +50,31 @@ public class AuthenticationServer extends AuthorizationServerConfigurerAdapter {
 		}
 	}
 
-	@Configuration
-	@Order(6)
-	public static class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-		@Autowired
-		protected AuthenticationManager authenticationManager;
-
-		@Autowired
-		public OAuth2ClientContext oauth2ClientContext;
-
-		@Override
-		protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-			auth.parentAuthenticationManager(authenticationManager);
-		}
-
-		@Override
-		protected void configure(HttpSecurity http) throws Exception {
-			// @formatter:off
-				http.formLogin().loginPage("/").loginProcessingUrl("/login")
-				.and().csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-				.and().addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
-			// @formatter:on
-		}
-
-		@Bean
-		@ConfigurationProperties("google")
-		public ClientResources google() {
-			return new ClientResources();
-		}
-
-		@Bean
-		public FilterRegistrationBean oauth2ClientFilterRegistration(OAuth2ClientContextFilter filter) {
-			FilterRegistrationBean registration = new FilterRegistrationBean();
-			registration.setFilter(filter);
-			registration.setOrder(-100);
-			return registration;
-		}
-
-		private Filter ssoFilter() {
-			CompositeFilter filter = new CompositeFilter();
-			List<Filter> filters = new ArrayList<>();
-			filters.add(ssoFilter(google(), "/login/google"));
-			filter.setFilters(filters);
-			return filter;
-		}
-
-		/**
-		 * Filter to execute the OAuth2 dance.
-		 * 
-		 * @param clientResource
-		 *            {@link ClientResources} having
-		 *            {@link OAuth2ProtectedResourceDetails} and
-		 *            {@link ResourceServerProperties}
-		 * @param path
-		 *            Path for which this filter comes into play.
-		 * @return {@link Filter}
-		 */
-		private Filter ssoFilter(ClientResources clientResource, String path) {
-			OAuth2ClientAuthenticationProcessingFilter oauth2ClientAuthFilter = new OAuth2ClientAuthenticationProcessingFilter(
-					path);
-			OAuth2RestTemplate socialTemplate = new OAuth2RestTemplate(clientResource.getClient(), oauth2ClientContext);
-			oauth2ClientAuthFilter.setRestTemplate(socialTemplate);
-			oauth2ClientAuthFilter.setTokenServices(new UserInfoTokenServices(
-					clientResource.getResource().getUserInfoUri(), clientResource.getClient().getClientId()));
-			oauth2ClientAuthFilter.setAuthenticationSuccessHandler(successHandler());
-			return oauth2ClientAuthFilter;
-		}
-
-		@Bean
-		public AuthenticationSuccessHandler successHandler() {
-			return new ExternalAuthenticationSuccessHandler();
-		}
-
-	}
-	
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		SpringApplication.run(AuthenticationServer.class, args);
+	}
+
+	@Autowired
+	protected AuthenticationManager authenticationManager;
+
+	@Override
+	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		// @formatter:off
+		endpoints
+			.authenticationManager(authenticationManager)
+			.tokenStore(tokenStore())
+			.accessTokenConverter(jwtAccessTokenConverter());
+		// @formatter:on
+	}
+	
+	@Override
+	public void configure(AuthorizationServerSecurityConfigurer oauthServer)
+			throws Exception {
+		oauthServer.tokenKeyAccess("permitAll()").checkTokenAccess(
+				"isAuthenticated()");
 	}
 
 	@Override
@@ -160,7 +90,25 @@ public class AuthenticationServer extends AuthorizationServerConfigurerAdapter {
 		// @formatter:on
 
 	}
-	
+
+	@Bean
+	public JwtAccessTokenConverter jwtAccessTokenConverter() {
+		JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+		/*
+		 * KeyPair keyPair = new KeyStoreKeyFactory(new
+		 * ClassPathResource("keystore.jks"), "foobar".toCharArray())
+		 * .getKeyPair("test"); converter.setKeyPair(keyPair);
+		 */
+		converter.setSigningKey("sambhav"); // simple symmetric encryption key.
+		return converter;
+	}
+
+	@Bean
+	public TokenStore tokenStore() {
+		TokenStore store = new JwtTokenStore(jwtAccessTokenConverter());
+		return store;
+	}
+
 	@RequestMapping(value = { "/me", "/user" }, method = RequestMethod.GET)
 	public Map<String, String> user(Principal principal) {
 		Map<String, String> map = new LinkedHashMap<>();

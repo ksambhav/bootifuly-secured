@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: resource
+server:
+  port: 9000
+  context-path: /resource
+security:
+  user:
+    password: none
+  oauth2:
+    resource:
+      jwt:
+        key-value: sambhav

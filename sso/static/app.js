@@ -14,6 +14,14 @@ angular.module('sso').config(function($stateProvider, $urlRouterProvider,$httpPr
         			console.error(error);
         			alert('Shit Happens');
         		});
+        	},
+        	resource : function(user,$http){
+        		return $http.get('http://localhost:9000/resource/test').then(function(succces){
+        			console.info(success.data);
+        			return success.data;
+        		},function(error){
+        			console.error(error);
+        		});
         	}
         }
     });

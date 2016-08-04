@@ -45,6 +45,6 @@ public class ExternalAuthenticationSuccessHandler extends SavedRequestAwareAuthe
 		String email = lhm.get("email");
 		String name = lhm.get("name");
 		String googleId = lhm.get("id");
-		log.debug("register the member here if not already registered.");
+		log.debug("register the member here if not already registered. - {}", email);
 	}
 }

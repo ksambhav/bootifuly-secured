@@ -105,5 +105,6 @@
 	<modules>
 		<module>uaa</module>
 		<module>sso</module>
+		<module>resource</module>
 	</modules>
 </project>

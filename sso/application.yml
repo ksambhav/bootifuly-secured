@@ -22,4 +22,5 @@ security:
       - profile
       - openid
     resource:
-      user-info-uri: http://localhost:8080/me
+      jwt:
+        key-value: sambhav
