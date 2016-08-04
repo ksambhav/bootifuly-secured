@@ -64,6 +64,7 @@ public class AuthenticationServer extends AuthorizationServerConfigurerAdapter {
 			.accessTokenValiditySeconds(36000)
 			.autoApprove(true)
 			.scopes("read","write","profile","openid")
+			.redirectUris("http://127.0.0.1:9999/#/home")
 			.authorizedGrantTypes("authorization_code","password"); 
 		// @formatter:on
 

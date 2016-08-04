@@ -6,7 +6,7 @@ server:
 logging:
   level:
     org.springframework: warn
-    org.springframework.security: info
+    org.springframework.security: warn
 security:
   user:
     name: admin
