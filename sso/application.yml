@@ -16,7 +16,6 @@ security:
       user-authorization-uri: http://localhost:8080/oauth/authorize
       access-token-uri: http://localhost:8080/oauth/token
       access-token-validity-seconds: 36000
-      registered-redirect-uri: http://127.0.0.1:9999/#/home
       scope:
       - read
       - write

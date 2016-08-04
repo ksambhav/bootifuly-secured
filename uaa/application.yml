@@ -19,6 +19,6 @@ google:
     token-name: access_token
     user-authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
     client-authentication-scheme: form
-    scope: https://www.googleapis.com/auth/userinfo.profile
+    scope: https://www.googleapis.com/auth/userinfo.profile,email
   resource:
     user-info-uri: https://www.googleapis.com/oauth2/v1/userinfo?alt=json

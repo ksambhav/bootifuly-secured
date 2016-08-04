@@ -37,6 +37,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,34 +56,13 @@ import org.springframework.web.filter.CompositeFilter;
 @EnableOAuth2Client
 public class AuthenticationServer extends AuthorizationServerConfigurerAdapter {
 
-	@Override
-	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-		// @formatter:off
-		clients.inMemory()
-			.withClient("acme")
-			.secret("acmesecret")
-			.accessTokenValiditySeconds(36000)
-			.autoApprove(true)
-			.scopes("read","write","profile","openid")
-			.redirectUris("http://127.0.0.1:9999/#/home")
-			.authorizedGrantTypes("authorization_code","password"); 
-		// @formatter:on
-
-	}
-
-	@RequestMapping(value = { "/me", "/user" }, method = RequestMethod.GET)
-	public Map<String, String> user(Principal principal) {
-		Map<String, String> map = new LinkedHashMap<>();
-		map.put("name", principal.getName());
-		return map;
-	}
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		SpringApplication.run(AuthenticationServer.class, args);
-
+	@Configuration
+	@EnableResourceServer
+	protected static class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
+		@Override
+		public void configure(HttpSecurity http) throws Exception {
+			http.antMatcher("/me").authorizeRequests().anyRequest().authenticated();
+		}
 	}
 
 	@Configuration
@@ -95,19 +75,27 @@ public class AuthenticationServer extends AuthorizationServerConfigurerAdapter {
 		@Autowired
 		public OAuth2ClientContext oauth2ClientContext;
 
+		@Override
+		protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+			auth.parentAuthenticationManager(authenticationManager);
+		}
+
+		@Override
+		protected void configure(HttpSecurity http) throws Exception {
+			// @formatter:off
+				http.formLogin().loginPage("/").loginProcessingUrl("/login")
+				.and().csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+				.and().addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
+			// @formatter:on
+		}
+
 		@Bean
 		@ConfigurationProperties("google")
 		public ClientResources google() {
 			return new ClientResources();
 		}
 
-		@Override
-		protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-			auth.parentAuthenticationManager(authenticationManager);
-		}
-
 		@Bean
-
 		public FilterRegistrationBean oauth2ClientFilterRegistration(OAuth2ClientContextFilter filter) {
 			FilterRegistrationBean registration = new FilterRegistrationBean();
 			registration.setFilter(filter);
@@ -118,8 +106,6 @@ public class AuthenticationServer extends AuthorizationServerConfigurerAdapter {
 		private Filter ssoFilter() {
 			CompositeFilter filter = new CompositeFilter();
 			List<Filter> filters = new ArrayList<>();
-			// filters.add(ssoFilter(facebook(), "/login/facebook"));
-			// filters.add(ssoFilter(github(), "/login/github"));
 			filters.add(ssoFilter(google(), "/login/google"));
 			filter.setFilters(filters);
 			return filter;
@@ -143,27 +129,43 @@ public class AuthenticationServer extends AuthorizationServerConfigurerAdapter {
 			oauth2ClientAuthFilter.setRestTemplate(socialTemplate);
 			oauth2ClientAuthFilter.setTokenServices(new UserInfoTokenServices(
 					clientResource.getResource().getUserInfoUri(), clientResource.getClient().getClientId()));
+			oauth2ClientAuthFilter.setAuthenticationSuccessHandler(successHandler());
 			return oauth2ClientAuthFilter;
 		}
 
-		@Override
-		protected void configure(HttpSecurity http) throws Exception {
-			// @formatter:off
-				http.formLogin().loginPage("/").loginProcessingUrl("/login")
-				.and().csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-				.and().addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
-			// @formatter:on
+		@Bean
+		public AuthenticationSuccessHandler successHandler() {
+			return new ExternalAuthenticationSuccessHandler();
 		}
 
 	}
+	
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		SpringApplication.run(AuthenticationServer.class, args);
+	}
 
-	@Configuration
-	@EnableResourceServer
-	protected static class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
-		@Override
-		public void configure(HttpSecurity http) throws Exception {
-			http.antMatcher("/me").authorizeRequests().anyRequest().authenticated();
-		}
+	@Override
+	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+		// @formatter:off
+		clients.inMemory()
+			.withClient("acme")
+			.secret("acmesecret")
+			.accessTokenValiditySeconds(36000)
+			.autoApprove(true)
+			.scopes("read","write","profile","openid")
+			.authorizedGrantTypes("authorization_code","password"); 
+		// @formatter:on
+
+	}
+	
+	@RequestMapping(value = { "/me", "/user" }, method = RequestMethod.GET)
+	public Map<String, String> user(Principal principal) {
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("name", principal.getName());
+		return map;
 	}
 
 }
