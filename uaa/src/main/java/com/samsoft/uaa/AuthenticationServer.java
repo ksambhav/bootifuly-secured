@@ -69,12 +69,10 @@ public class AuthenticationServer extends AuthorizationServerConfigurerAdapter {
 			.accessTokenConverter(jwtAccessTokenConverter());
 		// @formatter:on
 	}
-	
+
 	@Override
-	public void configure(AuthorizationServerSecurityConfigurer oauthServer)
-			throws Exception {
-		oauthServer.tokenKeyAccess("permitAll()").checkTokenAccess(
-				"isAuthenticated()");
+	public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
+		oauthServer.tokenKeyAccess("permitAll()").checkTokenAccess("isAuthenticated()");
 	}
 
 	@Override
@@ -94,11 +92,6 @@ public class AuthenticationServer extends AuthorizationServerConfigurerAdapter {
 	@Bean
 	public JwtAccessTokenConverter jwtAccessTokenConverter() {
 		JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-		/*
-		 * KeyPair keyPair = new KeyStoreKeyFactory(new
-		 * ClassPathResource("keystore.jks"), "foobar".toCharArray())
-		 * .getKeyPair("test"); converter.setKeyPair(keyPair);
-		 */
 		converter.setSigningKey("sambhav"); // simple symmetric encryption key.
 		return converter;
 	}
