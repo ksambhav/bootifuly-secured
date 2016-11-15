@@ -2,22 +2,22 @@ spring:
   application:
     name: uaa
 server:
-  port: 8080
+  port: 9999
 logging:
   level:
     org.springframework: warn
-    org.springframework.security: warn
+    org.springframework.security: debug
 security:
   user:
     name: admin
     password: password
 google:
   client:
-    client-id: 152974219409-uotglq83dmvks07jpfmrvnb0dahek614.apps.googleusercontent.com
-    client-secret: Yx-e-ROwAs2G639NdyI8wXh-
-    access-token-uri: https://www.googleapis.com/oauth2/v4/token
+    client-id: 105604704556-ndv0vsklc25nqjargruera8co92nb7kd.apps.googleusercontent.com
+    client-secret: ouwbyn7DEhwfNB3CgAN42_mE
+    access-token-uri: https://accounts.google.com/o/oauth2/token
     token-name: access_token
-    user-authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+    user-authorization-uri: https://accounts.google.com/o/oauth2/auth
     client-authentication-scheme: form
     scope: https://www.googleapis.com/auth/userinfo.profile,email
   resource:

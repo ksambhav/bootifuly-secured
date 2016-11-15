@@ -2,19 +2,19 @@ spring:
   application:
     name: sso
 server:
-  port: 9999
+  port: 80
 logging:
   level:
     org.springframework: warn
-    org.springframework.security: warn
-    org.springframework.web.filter: warn
+    org.springframework.security: debug
+    org.springframework.web.filter: debug
 security:
   oauth2:
     client:
       client-id: acme
       client-secret: acmesecret
-      user-authorization-uri: http://localhost:8080/oauth/authorize
-      access-token-uri: http://localhost:8080/oauth/token
+      user-authorization-uri: http://localhost:9999/oauth/authorize
+      access-token-uri: http://localhost:9999/oauth/token
       access-token-validity-seconds: 36000
       scope:
       - read
